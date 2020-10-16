@@ -11,6 +11,8 @@ import io.realm.Sort
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
+import io.realm.RealmResults
+
 
 const val EXTRA_TASK = "jp.techacademy.yuuki.nakano4.taskapp.TASK"
 
@@ -31,6 +33,10 @@ class MainActivity : AppCompatActivity() {
         fab.setOnClickListener { view ->
             val intent = Intent(this@MainActivity, inputActivity::class.java)
             startActivity(intent)
+        }
+
+        saveButton.setOnClickListener{
+            reloadListView()
         }
 
         // Realmの設定
@@ -94,8 +100,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun reloadListView() {
-        // Realmデータベースから、「全てのデータを取得して新しい日時順に並べた結果」を取得
-        val taskRealmResults = mRealm.where(Task::class.java).findAll().sort("date", Sort.DESCENDING)
+        // editTextが空だったら全表示、入力されていたら検索
+        var taskRealmResults: RealmResults<Task>
+        if(editText.text.toString() == "") {
+            taskRealmResults = mRealm.where(Task::class.java).findAll().sort("date", Sort.DESCENDING)
+        } else{
+            taskRealmResults = mRealm.where(Task::class.java).equalTo("category",editText.text.toString()).findAll().sort("date", Sort.DESCENDING)
+        }
 
         // 上記の結果を、TaskList としてセットする
         mTaskAdapter.taskList = mRealm.copyFromRealm(taskRealmResults)
